@@ -1,6 +1,30 @@
 # VLESS Server Installation Guide
 ## Complete Setup with 3x-ui Panel and Reality Protocol
 
+## 🚀 Quick Start Guide
+
+### **One-Line Installation:**
+```bash
+# Download and run installer
+curl -L "https://raw.githubusercontent.com/alter/vless-vpn/refs/heads/main/vless_auto_installer.sh?token=GHSAT0AAAAAADFS2AU7OQVF5IPVB7SEZ2VS2CSUZXQ" | sudo bash
+```
+
+### **With Domain Configuration:**
+```bash
+# Download installer
+curl -L -o vless_auto_installer.sh "https://raw.githubusercontent.com/alter/vless-vpn/refs/heads/main/vless_auto_installer.sh?token=GHSAT0AAAAAADFS2AU7OQVF5IPVB7SEZ2VS2CSUZXQ"
+chmod +x vless_auto_installer.sh
+
+# Run with domain
+sudo DOMAIN=your-domain.com EMAIL=admin@domain.com ./vless_auto_installer.sh
+```
+
+### **Quick Diagnostic:**
+```bash
+# Download and run diagnostic
+curl -L "https://raw.githubusercontent.com/alter/vless-vpn/refs/heads/main/vless_diagnostic.sh?token=GHSAT0AAAAAADFS2AU6JBIWAM3LKKROG5C22CSU2VQ" | sudo bash
+```
+
 ---
 
 ## 📋 Table of Contents
@@ -48,8 +72,20 @@ systemctl enable docker && systemctl start docker
 ### **1. Download Installation Script**
 ```bash
 # Download the auto-installer
-curl -O https://raw.githubusercontent.com/your-repo/vless_auto_installer.sh
+curl -O "https://raw.githubusercontent.com/alter/vless-vpn/refs/heads/main/vless_auto_installer.sh?token=GHSAT0AAAAAADFS2AU7OQVF5IPVB7SEZ2VS2CSUZXQ"
+mv "vless_auto_installer.sh?token=GHSAT0AAAAAADFS2AU7OQVF5IPVB7SEZ2VS2CSUZXQ" vless_auto_installer.sh
 chmod +x vless_auto_installer.sh
+
+# Or using short command:
+curl -L -o vless_auto_installer.sh "https://raw.githubusercontent.com/alter/vless-vpn/refs/heads/main/vless_auto_installer.sh?token=GHSAT0AAAAAADFS2AU7OQVF5IPVB7SEZ2VS2CSUZXQ"
+chmod +x vless_auto_installer.sh
+```
+
+### **2. Download Diagnostic Script (Optional)**
+```bash
+# Download diagnostic script
+curl -L -o vless_diagnostic.sh "https://raw.githubusercontent.com/alter/vless-vpn/refs/heads/main/vless_diagnostic.sh?token=GHSAT0AAAAAADFS2AU6JBIWAM3LKKROG5C22CSU2VQ"
+chmod +x vless_diagnostic.sh
 ```
 
 ### **2. Run Installation**
@@ -217,8 +253,16 @@ After creating a client:
 
 ### **Run Diagnostic Script**
 ```bash
-# Full system diagnostic
+# If downloaded separately
+sudo ./vless_diagnostic.sh
+
+# Or if installed via auto-installer
 sudo /opt/vless-manager/scripts/vless_diagnostic.sh
+
+# Download and run directly
+curl -L -o vless_diagnostic.sh "https://raw.githubusercontent.com/alter/vless-vpn/refs/heads/main/vless_diagnostic.sh?token=GHSAT0AAAAAADFS2AU6JBIWAM3LKKROG5C22CSU2VQ"
+chmod +x vless_diagnostic.sh
+sudo ./vless_diagnostic.sh
 ```
 
 ### **Manual Diagnostics**
