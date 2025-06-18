@@ -309,17 +309,22 @@ docker logs 3x-ui --follow
 ### **Recommended Clients**
 
 **macOS:**
-- **ClashX Pro** (best for macOS)
+- **Streisand** (recommended for macOS)
+- **ClashX Pro** 
 - **V2rayU** (native client)
 - **Hiddify** (cross-platform)
+
+**Android:**
+- **Hiddify** (recommended for Android)
+- **v2rayNG**
 
 **Windows:**
 - **v2rayN**
 - **Hiddify**
 
-**Android/iOS:**
+**iOS:**
 - **Hiddify**
-- **v2rayNG** (Android)
+- **Streisand** (if available)
 
 ### **Configuration Process**
 
@@ -497,9 +502,10 @@ docker-compose up -d
 5. **Monitor server resources** (CPU, RAM, disk)
 
 ### **📱 Client Recommendations:**
-- **macOS:** ClashX Pro or V2rayU
+- **macOS:** Streisand (primary choice) or ClashX Pro
+- **Android:** Hiddify (best for Android)
 - **Windows:** v2rayN or Hiddify  
-- **Mobile:** Hiddify (best cross-platform support)
+- **iOS:** Hiddify
 - **Router:** HomeProxy on OpenWrt
 
 ---
