@@ -43,6 +43,7 @@ Write down these details:
    
 3. **In Clients section:**
    - **Email:** `myphone@vpn.com` (any email)
+   - **Flow:** select `xtls-rprx-vision-udp443`
    - **Limit IP:** `2` (how many devices at once)
    - **Expiry Time:** pick date 10 years from now
    
@@ -65,17 +66,16 @@ Write down these details:
 
 ---
 
-## 📲 Phone Apps
+## 📲 VPN App for All Devices
 
-### iPhone:
-Download **Hiddify** from App Store
-
-### Android:
-Download **Hiddify** from Google Play
+### Download v2RayTun:
+- **iPhone:** Download **v2RayTun** from App Store
+- **Android:** Download **v2RayTun** from Google Play
+- **Windows/Mac/Linux:** Download **v2RayTun** from official website
 
 ### How to Connect:
-1. Open the app
-2. Tap "+" or "Add"
+1. Open v2RayTun app
+2. Tap "+" or "Add Server"
 3. Scan QR code from panel
 4. Tap "Connect"
 
