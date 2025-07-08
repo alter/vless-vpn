@@ -588,7 +588,7 @@ VPN_PORT=$VPN_PORT
 DOMAIN=$DOMAIN
 EMAIL=$EMAIL
 INSTALL_DATE=$(date)
-SERVER_IP=$(curl -s ipinfo.io/ip || echo "unknown")
+SERVER_IP=$(curl -s -L -4 iprs.fly.dev || curl -s ipinfo.io/ip || echo "unknown")
 EOF
 }
 
@@ -1073,7 +1073,7 @@ main() {
     update_system
     
     # Get server IP early for SSL certificate
-    SERVER_IP=$(curl -s ipinfo.io/ip || hostname -I | awk '{print $1}')
+    SERVER_IP=$(curl -s -L -4 iprs.fly.dev || curl -s ipinfo.io/ip || hostname -I | awk '{print $1}')
     
     # Main installation steps
     create_management_structure
@@ -1093,12 +1093,26 @@ main() {
     log_info "Installation completed successfully!"
     
     echo -e "\n${GREEN}=== Installation Summary ===${NC}"
-    SERVER_IP=$(curl -s ipinfo.io/ip || hostname -I | awk '{print $1}')
+    SERVER_IP=$(curl -s -L -4 iprs.fly.dev || curl -s ipinfo.io/ip || hostname -I | awk '{print $1}')
     echo "VPN Port: $VPN_PORT (configure VLESS clients to connect here)"
     echo "Panel URL: https://$SERVER_IP:$PANEL_PORT"
     echo "Username: $PANEL_USER"
     echo "Password: $PANEL_PASS"
     echo "Installation: Docker"
+    echo ""
+    echo -e "${GREEN}=== Quick Access Links ===${NC}"
+    echo "Web Panel: https://$SERVER_IP:$PANEL_PORT"
+    echo ""
+    echo -e "${GREEN}=== Configuration & Logs ===${NC}"
+    echo "View saved configuration:"
+    echo "  cat $INSTALL_DIR/configs/server.conf"
+    echo ""
+    echo "View Docker logs:"
+    echo "  cd $INSTALL_DIR/docker && docker-compose logs"
+    echo "  cd $INSTALL_DIR/docker && docker-compose logs -f    # Follow logs in real-time"
+    echo ""
+    echo "View monitoring logs:"
+    echo "  cat $INSTALL_DIR/logs/monitor.log"
     echo ""
     echo "Management scripts location: $INSTALL_DIR/scripts/"
     echo "Configuration files: $INSTALL_DIR/configs/"
