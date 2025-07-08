@@ -19,6 +19,103 @@ DOMAIN=${DOMAIN:-}
 EMAIL=${EMAIL:-}
 INSTALL_DIR="/opt/vless-manager"
 
+# Logging functions
+log_info() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+log_debug() {
+    echo -e "${BLUE}[DEBUG]${NC} $1"
+}
+
+# Check if running as root
+check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        log_error "This script must be run as root"
+        exit 1
+    fi
+}
+
+# Install net-tools first
+install_nettools() {
+    log_info "Checking for net-tools..."
+    if ! command -v netstat &> /dev/null; then
+        log_info "Installing net-tools..."
+        apt-get update -qq
+        apt-get install -y -qq net-tools
+    else
+        log_info "net-tools already installed"
+    fi
+}
+
+# Check Docker installation
+check_docker_installation() {
+    log_info "Checking Docker installation..."
+    
+    local docker_installed=false
+    local docker_working=false
+    
+    # Check if docker command exists
+    if command -v docker &> /dev/null; then
+        docker_installed=true
+        log_info "Docker command found"
+        
+        # Check if docker daemon is running
+        if docker ps &> /dev/null; then
+            docker_working=true
+            log_info "Docker daemon is running"
+        else
+            log_error "Docker is installed but not working properly"
+            log_error "Error: $(docker ps 2>&1)"
+        fi
+    else
+        log_error "Docker is not installed"
+    fi
+    
+    # If Docker is not installed or not working, provide instructions
+    if [[ "$docker_installed" == "false" ]] || [[ "$docker_working" == "false" ]]; then
+        echo ""
+        echo -e "${RED}=== Docker Installation Required ===${NC}"
+        echo ""
+        echo "Docker is not installed or not working properly on this system."
+        echo "Please install Docker first using the following commands:"
+        echo ""
+        echo -e "${GREEN}# Install Docker:${NC}"
+        echo "curl -fsSL https://get.docker.com | sh"
+        echo ""
+        echo -e "${GREEN}# Add current user to docker group (optional):${NC}"
+        echo "usermod -aG docker \$USER"
+        echo ""
+        echo -e "${GREEN}# Start and enable Docker service:${NC}"
+        echo "systemctl enable docker"
+        echo "systemctl start docker"
+        echo ""
+        echo -e "${GREEN}# Verify Docker installation:${NC}"
+        echo "docker ps"
+        echo ""
+        echo "After installing Docker, please run this script again."
+        echo ""
+        exit 1
+    fi
+    
+    # Check for docker-compose
+    if ! command -v docker-compose &> /dev/null; then
+        log_warn "docker-compose not found, will be installed during setup"
+    else
+        log_info "docker-compose is available"
+    fi
+    
+    log_info "Docker check completed successfully"
+}
+
 # Detect available ports
 detect_available_vpn_port() {
     # VPN ports in order of preference (HTTPS/SSL standard ports)
@@ -62,31 +159,6 @@ detect_available_panel_port() {
     done
     
     echo "9000" # fallback
-}
-
-# Logging
-log_info() {
-    echo -e "${GREEN}[INFO]${NC} $1"
-}
-
-log_warn() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
-}
-
-log_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-log_debug() {
-    echo -e "${BLUE}[DEBUG]${NC} $1"
-}
-
-# Check if running as root
-check_root() {
-    if [[ $EUID -ne 0 ]]; then
-        log_error "This script must be run as root"
-        exit 1
-    fi
 }
 
 # Check for existing installation
@@ -189,6 +261,8 @@ cleanup_iptables_rules() {
         iptables-save > /etc/iptables/rules.v4 2>/dev/null || true
     fi
 }
+
+# Detect OS
 detect_os() {
     if [[ -f /etc/os-release ]]; then
         . /etc/os-release
@@ -304,6 +378,18 @@ COMPOSE_EOF
     # Check if container is running
     if docker-compose ps | grep -q "Up"; then
         log_info "3x-ui Docker container started successfully"
+        
+        # Set panel username and password
+        log_info "Setting panel username and password..."
+        docker exec -it 3x-ui /app/x-ui setting -username "$PANEL_USER" -password "$PANEL_PASS"
+        
+        if [[ $? -eq 0 ]]; then
+            log_info "Panel username and password set successfully"
+        else
+            log_warn "Failed to set panel username and password automatically"
+            log_warn "You may need to set it manually with:"
+            log_warn "docker exec -it 3x-ui /app/x-ui setting -username $PANEL_USER -password '$PANEL_PASS'"
+        fi
     else
         log_error "Failed to start 3x-ui Docker container"
         log_error "Debug info:"
@@ -498,6 +584,7 @@ create_management_structure() {
 PANEL_PORT=$PANEL_PORT
 PANEL_USER=$PANEL_USER
 PANEL_PASS=$PANEL_PASS
+VPN_PORT=$VPN_PORT
 DOMAIN=$DOMAIN
 EMAIL=$EMAIL
 INSTALL_DATE=$(date)
@@ -715,11 +802,11 @@ CONNECTIONS=$(netstat -tn | grep :443 | wc -l)
 log_metric "Active connections: $CONNECTIONS"
 
 # 3x-ui service status
-if docker compose -f $INSTALL_DIR/docker/docker-compose.yml ps | grep -q "Up"; then
+if docker-compose -f $INSTALL_DIR/docker/docker-compose.yml ps | grep -q "Up"; then
     log_metric "3x-ui service: Running (Docker)"
 else
     log_metric "3x-ui service: Stopped (Docker)"
-    cd $INSTALL_DIR/docker && docker compose up -d
+    cd $INSTALL_DIR/docker && docker-compose up -d
 fi
 
 # Check disk space
@@ -935,6 +1022,11 @@ main() {
     echo "================================================================="
     echo -e "${NC}"
     
+    # Pre-installation checks
+    check_root
+    install_nettools
+    check_docker_installation
+    
     # Detect available ports
     if [[ -z "$VPN_PORT" ]]; then
         VPN_PORT=$(detect_available_vpn_port)
@@ -975,20 +1067,22 @@ main() {
     fi
     
     # Start installation
-    check_root
     detect_os
-    check_existing_installation  # NEW: Check for previous installation
+    check_existing_installation
     check_docker
     update_system
     
     # Get server IP early for SSL certificate
     SERVER_IP=$(curl -s ipinfo.io/ip || hostname -I | awk '{print $1}')
     
+    # Main installation steps
     create_management_structure
     install_3x_ui_docker
     setup_firewall
     setup_fail2ban
     setup_ssl
+    
+    # Create management scripts
     create_user_manager
     create_monitoring_script
     create_backup_script
